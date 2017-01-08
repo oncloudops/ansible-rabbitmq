@@ -1,0 +1,6 @@
+[rabbitmq-master]
+node01
+[rabbitmq-slave]
+node[02:03]
+[rabbitmq-slave:vars]
+rabbitmq_master=node01

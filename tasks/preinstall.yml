@@ -1,0 +1,19 @@
+--- 
+- name: preinstall |  config epel
+  template: src=epel.repo.j2 dest=/etc/yum.repos.d/epel.repo
+
+- name: preinstall |  create ansible_rabbitmq
+  file: path=/opt/ansible_rabbitmq state=directory mode=0755
+
+- name: preinstall |  upload rabbitmq
+  copy:
+    src: "{{ rabbitmq_rpm }}"
+    dest: /opt/ansible_rabbitmq
+  when: rabbitmq_rpm
+
+- name: preinstall |  upload erlang
+  copy:
+    src: "{{erlang_rpm}}"
+    dest: /opt/ansible_rabbitmq
+
+

@@ -1,0 +1,3 @@
+---
+- name: clean | clean temp file
+  file: path=/opt/ansible_rabbitmq state=directory state=absent

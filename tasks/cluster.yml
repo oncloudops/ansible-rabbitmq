@@ -1,0 +1,72 @@
+---
+#- name:  rabbitmq_policy | config ha
+#  rabbitmq_policy: name=HA pattern='.*' tags="ha-mode=all"
+
+#- name: stopping rabbitmq app
+#  command: rabbitmqctl stop_app
+#  when:  "'rabbitmq-master' not in group_names"
+#
+#- name: resetting rabbitmq app
+#  command: rabbitmqctl reset
+#  when:  "'rabbitmq-master' not in group_names"
+#
+- name: cluster | stopping rabbitmq-server
+  service:
+    name: rabbitmq-server
+    state: stopped
+
+#- name: grabbing erlang cookie
+#  shell: cat /var/lib/rabbitmq/.erlang.cookie
+#  register: rabbitmq_erlang_cookie
+#  when:  "'rabbitmq-master' in group_names"
+
+- name: cluster | copy erlang cookie
+  template:
+    src: erlang.cookie.j2
+    dest: "{{ rabbitmq_erlang_cookie_file }}"
+    owner: rabbitmq
+    group: rabbitmq
+    mode: 0400
+    backup: yes #backing up in case the need to recover
+#  when:  "'rabbitmq-master' not in group_names"
+
+- name: cluster | restarting rabbitmq-server on master
+  service:
+    name: rabbitmq-server
+    state: restarted
+  when:  "'rabbitmq-master' in group_names"
+  register: cluster_master
+
+
+- name: cluster | sending sigterm to any running rabbitmq processes
+  shell: pkill -u rabbitmq || true
+  when:  "'rabbitmq-master' not in group_names"
+
+- name: cluster | restarting rabbitmq-server
+  service:
+    name: rabbitmq-server
+    state: restarted
+  when:  "'rabbitmq-master' not in group_names"
+
+- name: cluster | stopping rabbitmq app
+  command: rabbitmqctl stop_app
+  when:  "'rabbitmq-master' not in group_names"
+
+- name: cluster | resetting rabbitmq app
+  command: rabbitmqctl reset
+  when:  "'rabbitmq-master' not in group_names"
+
+- name: cluster | joining rabbitmq cluster
+  command: rabbitmqctl join_cluster "rabbit@{{ rabbitmq_master }}"
+  register: cluster_joined
+  when:  "'rabbitmq-master' not in group_names"
+
+- name: cluster | starting rabbitmq app
+  command: rabbitmqctl start_app
+  when:  "'rabbitmq-master' not in group_names"
+
+- name: cluster | marking as clustered
+  file:
+    path: /etc/rabbitmq/clustered
+    state: touch
+  when: cluster_master.changed or cluster_joined.changed

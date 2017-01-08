@@ -1,0 +1,15 @@
+---
+
+- name: remove | sending sigterm to any running rabbitmq processes
+  shell: pkill -u rabbitmq || true
+
+- name: remove| remove rabbitmq
+  yum: name={{ item }} state=absent
+  with_items:
+      - rabbitmq-server
+      - erlang
+- name: remove | rm /var/lib/rabbitmq
+  file: path=/var/lib/rabbitmq state=directory state=absent
+
+- name: remove| reboot server
+  shell: reboot

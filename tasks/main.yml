@@ -1,0 +1,28 @@
+---
+#- include: firewall.yml
+#  tags:
+#    - firewall
+
+- include: preinstall.yml
+  tags:
+    - preinstall
+
+- include: install.yml
+  tags:
+    - install
+
+- include: cluster.yml
+  when: rabbitmq_cluster
+  tags:
+    - cluster
+
+- include: user.yml
+  tags:
+    - user
+- include: clean.yml
+  tags:
+    - clean
+- include: remove.yml
+  tags:
+    - remove
+  when: remove is defined

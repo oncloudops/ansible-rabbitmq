@@ -1,0 +1,13 @@
+---
+name: firewall | configure Iptables
+  iptables: chain=INPUT protocol=tcp jump=ACCEPT source_port={{ item }}
+  with_items:
+      - "{{rabbitmq_ports}}"
+  when: (ansible_distribution_major_version == '6') and firewall_config_enabled
+
+name: firewall | configure Firewalld
+  firewalld: port={{ item }}/tcp permanent=true state=enabled immediate=true
+  with_items:
+      - "{{rabbitmq_ports}}"
+  when: (ansible_distribution_major_version == '7') and firewall_config_enabled
+  

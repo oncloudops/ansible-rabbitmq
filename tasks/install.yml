@@ -1,0 +1,24 @@
+---
+- name: install |  get rpm name
+  shell: (cd /opt/ansible_rabbitmq; find . -maxdepth 1 -type f -name "*.rpm" ) | cut -d'/' -f2
+  register: rpm_lists
+- name: install |  install rpm
+  yum: name=/opt/ansible_rabbitmq/{{ item }}  state=present
+  with_items: "{{rpm_lists.stdout_lines}}"
+
+- name: install |  ensure service running and onboot
+  service: name=rabbitmq-server state=running enabled=yes
+
+- name: install |  enabled plugins
+  rabbitmq_plugin: name={{ item }} state=enabled
+  with_items:
+    - "{{ rabbitmq_plugins }}"
+
+- name: ensure the default vhost contains the HA policy via a dict
+  rabbitmq_policy:
+    name: HA
+    pattern: .*
+  args:
+    tags:
+      ha-mode: all
+

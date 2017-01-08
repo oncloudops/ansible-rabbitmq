@@ -1,0 +1,43 @@
+---
+- name: user | deleteing guest user
+  rabbitmq_user:
+    name: guest
+    state: absent
+  when: not rabbitmq_cluster
+
+- name: user | creating rabbitmq users
+  rabbitmq_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    vhost: "{{ item.vhost }}"
+    configure_priv: "{{ item.configure_priv }}"
+    read_priv: "{{ item.read_priv }}"
+    write_priv: "{{ item.write_priv }}"
+    tags: "{{ item.tags }}"
+    state: present
+  with_items: "{{ rabbitmq_users }}"
+  when: not rabbitmq_cluster
+
+
+
+- name: user | deleteing guest user
+  rabbitmq_user:
+    name: guest
+    state: absent
+  run_once: yes
+  when: rabbitmq_cluster and "'rabbitmq-master' in group_names"
+
+- name: user | creating rabbitmq users
+  rabbitmq_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    vhost: "{{ item.vhost }}"
+    configure_priv: "{{ item.configure_priv }}"
+    read_priv: "{{ item.read_priv }}"
+    write_priv: "{{ item.write_priv }}"
+    tags: "{{ item.tags }}"
+    state: present
+  run_once: yes
+  with_items: "{{ rabbitmq_users }}"
+  when: rabbitmq_cluster and "'rabbitmq-master' in group_names"
+
