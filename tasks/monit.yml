@@ -1,0 +1,9 @@
+---
+- name: monit |  config epel
+  template: src=epel.repo.j2 dest=/etc/yum.repos.d/epel.repo
+- name: monit | install monit
+  yum: name=monit state=present 
+- name: monit | config monit
+  template: src=monit_rabbit.j2  dest=/etc/monit.d/rabbitmq
+- name: monit | enable monit running and onboot
+  service: name=monit state=running enabled=yes
